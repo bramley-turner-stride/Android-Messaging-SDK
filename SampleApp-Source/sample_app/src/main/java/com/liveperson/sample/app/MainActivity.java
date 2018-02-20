@@ -14,6 +14,8 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -29,6 +31,7 @@ import com.liveperson.infra.Infra;
 import com.liveperson.infra.InitLivePersonProperties;
 import com.liveperson.infra.LPAuthenticationParams;
 import com.liveperson.infra.callbacks.InitLivePersonCallBack;
+import com.liveperson.infra.model.PushMessage;
 import com.liveperson.messaging.sdk.api.callbacks.LogoutLivePersonCallback;
 import com.liveperson.messaging.sdk.api.LivePerson;
 import com.liveperson.messaging.sdk.api.model.ConsumerProfile;
@@ -38,7 +41,9 @@ import com.liveperson.sample.app.push.NotificationUI;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -72,6 +77,33 @@ public class MainActivity extends AppCompatActivity {
         initStartFragmentButton();
 
         handlePush(getIntent());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.menu_test_notify:
+
+                saveAccountAndUserSettings();
+                removeNotification();
+                String brandId = SampleAppStorage.getInstance(MainActivity.this).getAccount();
+                if(TextUtils.isEmpty(brandId)) brandId = "123";
+                Map<String, String> data = new HashMap<>();
+                data.put("message", "hello world");
+
+                PushMessage lpMessage = LivePerson.handlePushMessage(this, data, brandId, true);
+                if(lpMessage!=null){
+                    Log.d(TAG, "Handled by lp lib");
+                }
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
