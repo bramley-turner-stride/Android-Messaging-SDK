@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
@@ -138,6 +140,22 @@ public class MainActivity extends AppCompatActivity {
         mPublicKey.setText(SampleAppStorage.getInstance(this).getPublicKey());
 
         String sdkVersion = String.format("SDK version %1$s ", LivePerson.getSDKVersion());
+        //read back GMS lib version from manifest meta-data elements
+        try {
+            ApplicationInfo appInfo = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
+            Bundle meta = appInfo.metaData;
+            sdkVersion+="\nGMS lib version: '"+meta.getInt("com.google.android.gms.version")+"'";
+            if(meta.containsKey("com.google.android.maps.v2.API_KEY")){
+                //this will be an empty string, because the messaging_ui lib overrides the google services plugin from google-services.json
+                sdkVersion+="\nMaps API Key: '"+meta.getString("com.google.android.maps.v2.API_KEY")+"'";
+            }
+            if(meta.containsKey("com.google.android.geo.API_KEY")){
+                //some users of the LP library may use the newer GEO meta-data element
+                sdkVersion+="\nGeo API Key: '"+meta.getString("com.google.android.geo.API_KEY")+"'";
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
         ((TextView) findViewById(R.id.sdk_version)).setText(sdkVersion);
 
         mTime = (TextView) findViewById(R.id.time_sample_textView);
